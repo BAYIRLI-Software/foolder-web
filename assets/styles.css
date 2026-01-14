@@ -1,0 +1,106 @@
+:root {
+  --bg: #0f0f10;
+  --panel: #17171a;
+  --text: #ffffff;
+  --muted: #b9b9c0;
+  --accent: #ff8a00;
+  --radius: 14px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 18px;
+  background: #000;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.brand {
+  font-weight: 900;
+  letter-spacing: 0.3px;
+}
+
+.nav {
+  display: flex;
+  gap: 14px;
+  margin-left: auto;
+}
+
+.nav a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.nav a.active,
+.nav a:hover {
+  color: var(--text);
+}
+
+.main {
+  padding: 16px;
+}
+
+.card {
+  background: var(--panel);
+  border-radius: var(--radius);
+  padding: 18px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+}
+
+.iframeWrap {
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+}
+
+.appFrame {
+  width: 100%;
+  height: calc(100vh - 86px);
+  border: 0;
+  background: var(--bg);
+}
+
+.pageTitle {
+  margin: 0 0 8px;
+  font-size: 22px;
+}
+
+.pageSub {
+  margin: 0 0 18px;
+  color: var(--muted);
+}
+
+.settingRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.settingRow:last-child {
+  border-bottom: none;
+}
+
+.badge {
+  background: rgba(255,138,0,0.15);
+  color: var(--accent);
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+}
