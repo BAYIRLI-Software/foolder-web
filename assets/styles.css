@@ -61,6 +61,52 @@ body {
   box-shadow: 0 10px 30px rgba(0,0,0,0.35);
 }
 
+.loginCard {
+  margin-bottom: 16px;
+}
+
+.formRow {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.input {
+  background: #0f0f12;
+  border: 1px solid rgba(255,255,255,0.08);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 14px;
+}
+
+.btn {
+  background: var(--accent);
+  color: #000;
+  border: 0;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btnSecondary {
+  background: rgba(255,255,255,0.08);
+  color: var(--text);
+}
+
+.loginStatus {
+  color: var(--muted);
+  font-size: 13px;
+  margin-top: 8px;
+}
+
+.divider {
+  height: 1px;
+  background: rgba(255,255,255,0.08);
+  margin: 12px 0;
+}
+
 .iframeWrap {
   border-radius: var(--radius);
   overflow: hidden;
