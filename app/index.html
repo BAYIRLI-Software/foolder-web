@@ -2386,7 +2386,7 @@
             // Vite dev server / preview: same host, backend port 3000
             return `${location.protocol}//${location.hostname}:3000`;
         }
-        const FALLBACK_PUBLIC_API_BASE = 'https://cds-estimate-foto-pump.trycloudflare.com';
+        const FALLBACK_PUBLIC_API_BASE = 'https://api.foolder.tv';
         let API_BASE = normalizeBaseUrl(
             new URLSearchParams(location.search).get('api') ||
             localStorage.getItem(API_BASE_LS_KEY) ||

@@ -1,5 +1,5 @@
 const appUrl = "/app/index.html"; // Hosted desktop web build
-const backendBaseUrl = "https://cds-estimate-foto-pump.trycloudflare.com";
+const backendBaseUrl = "https://api.foolder.tv";
 
 const tokenKey = "foolder_token";
 const statusEl = document.getElementById("loginStatus");
