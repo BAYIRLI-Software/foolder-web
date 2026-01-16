@@ -14,11 +14,11 @@ const signupForm = document.getElementById("signupForm");
 const qrNotice = document.getElementById("qrNotice");
 const statusEl = document.getElementById("status");
 
-const usernameInput = document.getElementById("username");
+const emailInput = document.getElementById("email");
 const passwordInput = document.getElementById("password");
 const loginBtn = document.getElementById("loginBtn");
 
-const newUsernameInput = document.getElementById("newUsername");
+const newEmailInput = document.getElementById("newEmail");
 const newPasswordInput = document.getElementById("newPassword");
 const signupBtn = document.getElementById("signupBtn");
 
@@ -73,11 +73,11 @@ function showStatus(message, type = "info") {
 // Login handler
 loginBtn.addEventListener("click", async () => {
   try {
-    const username = usernameInput.value.trim();
+    const email = emailInput.value.trim();
     const password = passwordInput.value;
     
-    if (!username || !password) {
-      showStatus("Please enter username and password", "error");
+    if (!email || !password) {
+      showStatus("Please enter email and password", "error");
       return;
     }
     
@@ -88,13 +88,13 @@ loginBtn.addEventListener("click", async () => {
       // Complete QR session
       const data = await api(`/auth/qr-session/${qrSessionId}/complete`, {
         method: "POST",
-        body: JSON.stringify({ username, password, isRegister: false })
+        body: JSON.stringify({ email, password, isRegister: false })
       });
       
       showStatus("Login successful! Return to your TV.", "success");
       
       // Clear inputs
-      usernameInput.value = "";
+      emailInput.value = "";
       passwordInput.value = "";
       
       // Optionally save token for website use too
@@ -104,7 +104,7 @@ loginBtn.addEventListener("click", async () => {
       // Normal website login
       const data = await api("/auth/login", {
         method: "POST",
-        body: JSON.stringify({ username, password })
+        body: JSON.stringify({ email, password })
       });
       
       if (data.token) localStorage.setItem(tokenKey, data.token);
@@ -127,16 +127,16 @@ loginBtn.addEventListener("click", async () => {
 // Signup handler
 signupBtn.addEventListener("click", async () => {
   try {
-    const username = newUsernameInput.value.trim();
+    const email = newEmailInput.value.trim();
     const password = newPasswordInput.value;
     
-    if (!username || !password) {
-      showStatus("Please enter username and password", "error");
+    if (!email || !password) {
+      showStatus("Please enter email and password", "error");
       return;
     }
     
-    if (username.length < 3) {
-      showStatus("Username must be at least 3 characters", "error");
+    if (!email.includes('@')) {
+      showStatus("Please enter a valid email address", "error");
       return;
     }
     
@@ -152,13 +152,13 @@ signupBtn.addEventListener("click", async () => {
       // Complete QR session with registration
       const data = await api(`/auth/qr-session/${qrSessionId}/complete`, {
         method: "POST",
-        body: JSON.stringify({ username, password, isRegister: true })
+        body: JSON.stringify({ email, password, isRegister: true })
       });
       
       showStatus("Account created! Return to your TV.", "success");
       
       // Clear inputs
-      newUsernameInput.value = "";
+      newEmailInput.value = "";
       newPasswordInput.value = "";
       
       // Optionally save token for website use too
@@ -168,7 +168,7 @@ signupBtn.addEventListener("click", async () => {
       // Normal website registration
       await api("/auth/register", {
         method: "POST",
-        body: JSON.stringify({ username, password })
+        body: JSON.stringify({ email, password })
       });
       
       showStatus("Account created! Please sign in.", "success");
@@ -177,7 +177,7 @@ signupBtn.addEventListener("click", async () => {
       setTimeout(() => {
         signupForm.classList.add("hidden");
         loginForm.classList.remove("hidden");
-        usernameInput.value = username;
+        emailInput.value = email;
         statusEl.classList.add("hidden");
       }, 1500);
     }
