@@ -1,5 +1,10 @@
 const appUrl = "/app/index.html"; // Hosted desktop web build
-const backendBaseUrl = "https://api.foolder.tv";
+const defaultBackendUrl = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+  ? "http://localhost:3000"
+  : "https://api.foolder.com";
+const backendBaseUrl = window.FOOLDER_BACKEND_URL
+  || localStorage.getItem("foolder_backend_url")
+  || defaultBackendUrl;
 
 const tokenKey = "foolder_token";
 const statusEl = document.getElementById("loginStatus");
@@ -47,6 +52,10 @@ if (loginBtn) {
     try {
       const username = document.getElementById("loginUser").value.trim();
       const password = document.getElementById("loginPass").value;
+      if (!username || !password) {
+        if (statusEl) statusEl.textContent = "Please enter username and password.";
+        return;
+      }
       const data = await api("/auth/login", { method: "POST", body: JSON.stringify({ username, password }) });
       if (data.token) localStorage.setItem(tokenKey, data.token);
       await refreshAuthStatus();
@@ -61,6 +70,10 @@ if (registerBtn) {
     try {
       const username = document.getElementById("registerUser").value.trim();
       const password = document.getElementById("registerPass").value;
+      if (!username || !password) {
+        if (statusEl) statusEl.textContent = "Please enter username and password.";
+        return;
+      }
       await api("/auth/register", { method: "POST", body: JSON.stringify({ username, password }) });
       if (statusEl) statusEl.textContent = "Account created. You can log in now.";
     } catch (e) {
@@ -71,8 +84,12 @@ if (registerBtn) {
 
 if (logoutBtn) {
   logoutBtn.addEventListener("click", () => {
-    localStorage.removeItem(tokenKey);
-    refreshAuthStatus();
+    api("/auth/logout", { method: "POST" })
+      .catch(() => {})
+      .finally(() => {
+        localStorage.removeItem(tokenKey);
+        refreshAuthStatus();
+      });
   });
 }
 
