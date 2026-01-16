@@ -7,15 +7,13 @@ const backendBaseUrl = window.FOOLDER_BACKEND_URL
   || defaultBackendUrl;
 
 const tokenKey = "foolder_token";
+const sessionKey = "foolder_session";
 
 // UI Elements
 const loginForm = document.getElementById("loginForm");
 const signupForm = document.getElementById("signupForm");
 const qrNotice = document.getElementById("qrNotice");
 const statusEl = document.getElementById("status");
-const tvCodeWrap = document.getElementById("tvCodeWrap");
-const tvCodeInput = document.getElementById("tvCodeInput");
-const tvCodeBtn = document.getElementById("tvCodeBtn");
 
 const emailInput = document.getElementById("email");
 const passwordInput = document.getElementById("password");
@@ -31,55 +29,13 @@ const toggleLogin = document.getElementById("toggleLogin");
 // Check for QR session parameter
 const urlParams = new URLSearchParams(window.location.search);
 let qrSessionId = urlParams.get("qr");
-const tvCodeParam = urlParams.get("code");
+const redirectTarget = urlParams.get("redirect");
 
 let isQrMode = false;
-
-async function resolveTvCode(code) {
-  const trimmed = String(code || "").trim();
-  if (!trimmed) return false;
-  const data = await api(`/auth/qr-code/${encodeURIComponent(trimmed)}`);
-  qrSessionId = data.sessionId || null;
-  if (qrSessionId) {
-    isQrMode = true;
-    qrNotice.classList.remove("hidden");
-    if (tvCodeWrap) tvCodeWrap.classList.add("hidden");
-    return true;
-  }
-  return false;
-}
 
 if (qrSessionId) {
   isQrMode = true;
   qrNotice.classList.remove("hidden");
-  if (tvCodeWrap) tvCodeWrap.classList.add("hidden");
-}
-
-if (!qrSessionId && tvCodeParam) {
-  resolveTvCode(tvCodeParam).catch((e) => {
-    showStatus(e.message || "Invalid TV code", "error");
-  });
-}
-
-if (tvCodeBtn) {
-  tvCodeBtn.addEventListener("click", async () => {
-    try {
-      const code = tvCodeInput.value.trim();
-      if (!code) {
-        showStatus("Enter the TV code shown on your device", "error");
-        return;
-      }
-      tvCodeBtn.disabled = true;
-      tvCodeBtn.textContent = "Linking...";
-      await resolveTvCode(code);
-      showStatus("Linked. Continue signing in below.", "success");
-    } catch (e) {
-      showStatus(e.message || "Invalid TV code", "error");
-    } finally {
-      tvCodeBtn.disabled = false;
-      tvCodeBtn.textContent = "Continue";
-    }
-  });
 }
 
 // Toggle between login and signup
@@ -145,6 +101,7 @@ loginBtn.addEventListener("click", async () => {
       
       // Optionally save token for website use too
       if (data.token) localStorage.setItem(tokenKey, data.token);
+      if (data.session) localStorage.setItem(sessionKey, JSON.stringify(data.session));
       
     } else {
       // Normal website login
@@ -154,11 +111,12 @@ loginBtn.addEventListener("click", async () => {
       });
       
       if (data.token) localStorage.setItem(tokenKey, data.token);
+      if (data.session) localStorage.setItem(sessionKey, JSON.stringify(data.session));
       showStatus("Login successful!", "success");
       
-      // Redirect to home after 1 second
+      // Redirect after 1 second
       setTimeout(() => {
-        window.location.href = "index.html";
+        window.location.href = redirectTarget ? redirectTarget : "index.html";
       }, 1000);
     }
     
@@ -209,23 +167,31 @@ signupBtn.addEventListener("click", async () => {
       
       // Optionally save token for website use too
       if (data.token) localStorage.setItem(tokenKey, data.token);
+      if (data.session) localStorage.setItem(sessionKey, JSON.stringify(data.session));
       
     } else {
       // Normal website registration
-      await api("/auth/register", {
+      const reg = await api("/auth/register", {
         method: "POST",
         body: JSON.stringify({ email, password })
       });
-      
-      showStatus("Account created! Please sign in.", "success");
-      
-      // Switch to login form after 1.5 seconds
-      setTimeout(() => {
-        signupForm.classList.add("hidden");
-        loginForm.classList.remove("hidden");
-        emailInput.value = email;
-        statusEl.classList.add("hidden");
-      }, 1500);
+      if (reg?.token) {
+        localStorage.setItem(tokenKey, reg.token);
+        if (reg.session) localStorage.setItem(sessionKey, JSON.stringify(reg.session));
+        showStatus("Account created!", "success");
+        setTimeout(() => {
+          window.location.href = redirectTarget ? redirectTarget : "index.html";
+        }, 1000);
+      } else {
+        showStatus("Account created! Please sign in.", "success");
+        // Switch to login form after 1.5 seconds
+        setTimeout(() => {
+          signupForm.classList.add("hidden");
+          loginForm.classList.remove("hidden");
+          emailInput.value = email;
+          statusEl.classList.add("hidden");
+        }, 1500);
+      }
     }
     
   } catch (e) {
