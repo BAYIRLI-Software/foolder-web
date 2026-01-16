@@ -191,7 +191,7 @@ signupBtn.addEventListener("click", async () => {
 });
 
 // Allow Enter key to submit
-usernameInput.addEventListener("keypress", (e) => {
+emailInput.addEventListener("keypress", (e) => {
   if (e.key === "Enter") passwordInput.focus();
 });
 
@@ -199,7 +199,7 @@ passwordInput.addEventListener("keypress", (e) => {
   if (e.key === "Enter") loginBtn.click();
 });
 
-newUsernameInput.addEventListener("keypress", (e) => {
+newEmailInput.addEventListener("keypress", (e) => {
   if (e.key === "Enter") newPasswordInput.focus();
 });
 
