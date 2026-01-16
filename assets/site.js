@@ -1,7 +1,7 @@
 const appUrl = "/app/index.html"; // Hosted desktop web build
 const defaultBackendUrl = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
   ? "http://localhost:3000"
-  : "https://api.foolder.com";
+  : "https://api.foolder.tv";
 const backendBaseUrl = window.FOOLDER_BACKEND_URL
   || localStorage.getItem("foolder_backend_url")
   || defaultBackendUrl;
