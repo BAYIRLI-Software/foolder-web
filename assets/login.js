@@ -139,7 +139,8 @@ signupBtn.addEventListener("click", async () => {
       return;
     }
     
-    if (!email.includes('@')) {
+    // Basic email validation
+    if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
       showStatus("Please enter a valid email address", "error");
       return;
     }

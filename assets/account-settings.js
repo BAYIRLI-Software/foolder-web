@@ -11,6 +11,13 @@
       ? "http://localhost:3000"
       : "https://api.foolder.tv"));
 
+  // Helper function to escape HTML and prevent XSS
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
   // Check if user is logged in
   function isLoggedIn() {
     const token = localStorage.getItem(tokenKey);
@@ -109,14 +116,14 @@
       }
       
       addonsList.innerHTML = addonsData.map(addon => `
-        <div class="list-item">
+        <div class="list-item" data-addon-id="${addon.id}">
           <div class="list-item-content">
-            <div class="list-item-title">${addon.name || 'Unnamed Addon'}</div>
-            <div class="list-item-subtitle">${addon.url || addon.config || ''}</div>
+            <div class="list-item-title">${escapeHtml(addon.name || 'Unnamed Addon')}</div>
+            <div class="list-item-subtitle">${escapeHtml(addon.url || addon.config || '')}</div>
           </div>
           <div class="list-item-actions">
-            <button class="btn-icon" onclick="window.editAddon('${addon.id}')">Edit</button>
-            <button class="btn-icon" onclick="window.deleteAddon('${addon.id}')">Delete</button>
+            <button class="btn-icon addon-edit-btn">Edit</button>
+            <button class="btn-icon addon-delete-btn">Delete</button>
           </div>
         </div>
       `).join('');
@@ -125,7 +132,7 @@
       if (e.message.includes('404') || e.message.includes('Not Found')) {
         addonsList.innerHTML = '<div class="empty-state">No addons configured</div>';
       } else {
-        addonsList.innerHTML = `<div class="empty-state">Failed to load addons: ${e.message}</div>`;
+        addonsList.innerHTML = `<div class="empty-state">Failed to load addons: ${escapeHtml(e.message)}</div>`;
       }
     }
   }
@@ -143,14 +150,14 @@
       }
       
       iptvList.innerHTML = iptvData.map(iptv => `
-        <div class="list-item">
+        <div class="list-item" data-iptv-id="${iptv.id}">
           <div class="list-item-content">
-            <div class="list-item-title">${iptv.name || 'Unnamed IPTV'}</div>
-            <div class="list-item-subtitle">${iptv.url || ''}</div>
+            <div class="list-item-title">${escapeHtml(iptv.name || 'Unnamed IPTV')}</div>
+            <div class="list-item-subtitle">${escapeHtml(iptv.url || '')}</div>
           </div>
           <div class="list-item-actions">
-            <button class="btn-icon" onclick="window.editIptv('${iptv.id}')">Edit</button>
-            <button class="btn-icon" onclick="window.deleteIptv('${iptv.id}')">Delete</button>
+            <button class="btn-icon iptv-edit-btn">Edit</button>
+            <button class="btn-icon iptv-delete-btn">Delete</button>
           </div>
         </div>
       `).join('');
@@ -159,7 +166,7 @@
       if (e.message.includes('404') || e.message.includes('Not Found')) {
         iptvList.innerHTML = '<div class="empty-state">No IPTV URLs configured</div>';
       } else {
-        iptvList.innerHTML = `<div class="empty-state">Failed to load IPTV URLs: ${e.message}</div>`;
+        iptvList.innerHTML = `<div class="empty-state">Failed to load IPTV URLs: ${escapeHtml(e.message)}</div>`;
       }
     }
   }
@@ -269,28 +276,35 @@
     }
   });
 
-  window.editAddon = (id) => {
-    const addon = addonsData.find(a => a.id === id || String(a.id) === id);
-    if (!addon) return;
+  // Event delegation for addon edit/delete buttons
+  addonsList.addEventListener('click', (e) => {
+    const listItem = e.target.closest('.list-item');
+    if (!listItem) return;
     
-    currentAddonId = id;
-    document.getElementById('addonModalTitle').textContent = 'Edit Addon';
-    document.getElementById('addonName').value = addon.name || '';
-    document.getElementById('addonUrl').value = addon.url || addon.config || '';
-    addonModal.classList.add('show');
-  };
-
-  window.deleteAddon = async (id) => {
-    if (!confirm('Are you sure you want to delete this addon?')) return;
+    const addonId = listItem.dataset.addonId;
     
-    try {
-      await api(`/user/addons/${id}`, { method: 'DELETE' });
-      showStatus('Addon deleted successfully', 'success');
-      await loadAddons();
-    } catch (e) {
-      showStatus(`Failed to delete addon: ${e.message}`, 'error');
+    if (e.target.classList.contains('addon-edit-btn')) {
+      const addon = addonsData.find(a => String(a.id) === String(addonId));
+      if (!addon) return;
+      
+      currentAddonId = addonId;
+      document.getElementById('addonModalTitle').textContent = 'Edit Addon';
+      document.getElementById('addonName').value = addon.name || '';
+      document.getElementById('addonUrl').value = addon.url || addon.config || '';
+      addonModal.classList.add('show');
+    } else if (e.target.classList.contains('addon-delete-btn')) {
+      if (!confirm('Are you sure you want to delete this addon?')) return;
+      
+      api(`/user/addons/${addonId}`, { method: 'DELETE' })
+        .then(() => {
+          showStatus('Addon deleted successfully', 'success');
+          return loadAddons();
+        })
+        .catch(e => {
+          showStatus(`Failed to delete addon: ${e.message}`, 'error');
+        });
     }
-  };
+  });
 
   // IPTV Modal Management
   let currentIptvId = null;
@@ -338,28 +352,35 @@
     }
   });
 
-  window.editIptv = (id) => {
-    const iptv = iptvData.find(i => i.id === id || String(i.id) === id);
-    if (!iptv) return;
+  // Event delegation for IPTV edit/delete buttons
+  iptvList.addEventListener('click', (e) => {
+    const listItem = e.target.closest('.list-item');
+    if (!listItem) return;
     
-    currentIptvId = id;
-    document.getElementById('iptvModalTitle').textContent = 'Edit IPTV URL';
-    document.getElementById('iptvName').value = iptv.name || '';
-    document.getElementById('iptvUrl').value = iptv.url || '';
-    iptvModal.classList.add('show');
-  };
-
-  window.deleteIptv = async (id) => {
-    if (!confirm('Are you sure you want to delete this IPTV URL?')) return;
+    const iptvId = listItem.dataset.iptvId;
     
-    try {
-      await api(`/user/iptv/${id}`, { method: 'DELETE' });
-      showStatus('IPTV URL deleted successfully', 'success');
-      await loadIptv();
-    } catch (e) {
-      showStatus(`Failed to delete IPTV URL: ${e.message}`, 'error');
+    if (e.target.classList.contains('iptv-edit-btn')) {
+      const iptv = iptvData.find(i => String(i.id) === String(iptvId));
+      if (!iptv) return;
+      
+      currentIptvId = iptvId;
+      document.getElementById('iptvModalTitle').textContent = 'Edit IPTV URL';
+      document.getElementById('iptvName').value = iptv.name || '';
+      document.getElementById('iptvUrl').value = iptv.url || '';
+      iptvModal.classList.add('show');
+    } else if (e.target.classList.contains('iptv-delete-btn')) {
+      if (!confirm('Are you sure you want to delete this IPTV URL?')) return;
+      
+      api(`/user/iptv/${iptvId}`, { method: 'DELETE' })
+        .then(() => {
+          showStatus('IPTV URL deleted successfully', 'success');
+          return loadIptv();
+        })
+        .catch(e => {
+          showStatus(`Failed to delete IPTV URL: ${e.message}`, 'error');
+        });
     }
-  };
+  });
 
   // Close modals on overlay click
   [changePasswordModal, addonModal, iptvModal].forEach(modal => {
