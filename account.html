@@ -3,215 +3,326 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Foolder — Sign In</title>
+  <title>Foolder — Account Settings</title>
+  <link rel="stylesheet" href="assets/styles.css" />
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+    .section {
+      margin-bottom: 32px;
     }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-      background: #0f0f10;
-      color: #fff;
-      min-height: 100vh;
+    .section-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: var(--accent);
+    }
+    .form-row {
       display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .container {
-      width: 100%;
-      max-width: 450px;
-      padding: 60px 68px;
-      background: #17171a;
-      border-radius: 12px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
-      border: 1px solid rgba(255, 255, 255, 0.06);
-    }
-    .logo {
-      font-size: 42px;
-      font-weight: 800;
-      color: #ff8a00;
-      margin-bottom: 28px;
-      text-align: center;
-      letter-spacing: 0.3px;
-    }
-    h1 {
-      font-size: 32px;
-      font-weight: 500;
-      margin-bottom: 28px;
-    }
-    .form-group {
+      gap: 12px;
       margin-bottom: 16px;
     }
-    input {
-      width: 100%;
-      padding: 16px 20px;
+    .form-row input {
+      flex: 1;
+    }
+    .form-row button {
+      white-space: nowrap;
+    }
+    .item {
       background: #0f0f12;
       border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 10px;
-      color: #fff;
-      font-size: 16px;
-      outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
-    }
-    input:focus {
-      border-color: rgba(255, 138, 0, 0.7);
-      box-shadow: 0 0 0 2px rgba(255, 138, 0, 0.25);
-      background: #111116;
-    }
-    input::placeholder {
-      color: #9a9aa3;
-    }
-    .btn {
-      width: 100%;
       padding: 16px;
-      background: #ff8a00;
-      border: none;
-      border-radius: 10px;
-      color: #000;
-      font-size: 16px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: background 0.2s, transform 0.05s ease-in-out;
-      margin-top: 24px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
-    .btn:hover {
-      background: #ffa033;
+    .item-info {
+      flex: 1;
     }
-    .btn:active {
-      transform: translateY(1px);
+    .item-name {
+      font-weight: 600;
+      margin-bottom: 4px;
     }
-    .btn:disabled {
-      background: #5b3b17;
-      color: #1c1207;
-      cursor: not-allowed;
+    .item-url {
+      font-size: 13px;
+      color: var(--muted);
+      word-break: break-all;
     }
-    .divider {
-      margin: 32px 0;
+    .item-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .btn-small {
+      padding: 8px 14px;
+      font-size: 13px;
+    }
+    .btn-danger {
+      background: #d32f2f;
+    }
+    .btn-danger:hover {
+      background: #f44336;
+    }
+    .empty-state {
       text-align: center;
-      position: relative;
+      padding: 32px;
+      color: var(--muted);
     }
-    .divider::before {
-      content: '';
-      position: absolute;
-      top: 50%;
+    .profile-info {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .profile-info > div {
+      flex: 1;
+    }
+    .profile-label {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .profile-value {
+      font-size: 16px;
+      font-weight: 500;
+    }
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-left: 8px;
+    }
+    .status-enabled {
+      background: rgba(76, 175, 80, 0.2);
+      color: #81c784;
+    }
+    .status-disabled {
+      background: rgba(244, 67, 54, 0.2);
+      color: #e57373;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
       left: 0;
       right: 0;
-      height: 1px;
-      background: rgba(255, 255, 255, 0.08);
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
     }
-    .divider span {
-      background: #17171a;
-      padding: 0 16px;
-      position: relative;
-      color: #9a9aa3;
-      font-size: 14px;
+    .modal.active {
+      display: flex;
     }
-    .toggle-link {
-      color: #fff;
-      text-decoration: none;
-      font-size: 16px;
-      display: inline-block;
-      margin-top: 16px;
-      cursor: pointer;
+    .modal-content {
+      background: var(--panel);
+      border-radius: 12px;
+      padding: 24px;
+      max-width: 500px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
     }
-    .toggle-link:hover {
-      color: #ff8a00;
+    .modal-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 16px;
     }
-    .status {
-      margin-top: 16px;
-      padding: 12px;
-      border-radius: 4px;
-      font-size: 14px;
-      text-align: center;
-    }
-    .status.error {
-      background: rgba(255, 138, 0, 0.12);
-      color: #ffb357;
-    }
-    .status.success {
-      background: rgba(255, 138, 0, 0.18);
-      color: #ff8a00;
-    }
-    .status.info {
-      background: rgba(255, 255, 255, 0.08);
-      color: #c7c7cf;
-    }
-    .qr-notice {
-      background: rgba(255, 138, 0, 0.12);
-      border-left: 3px solid #ff8a00;
-      padding: 12px 16px;
-      margin-bottom: 24px;
-      border-radius: 6px;
-      font-size: 14px;
-      color: #ffb357;
-    }
-    .hidden {
-      display: none;
-    }
-    .footer {
+    .modal-actions {
+      display: flex;
+      gap: 12px;
       margin-top: 24px;
+    }
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 48px;
+      height: 24px;
+    }
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #555;
+      transition: 0.3s;
+      border-radius: 24px;
+    }
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: 0.3s;
+      border-radius: 50%;
+    }
+    input:checked + .toggle-slider {
+      background-color: var(--accent);
+    }
+    input:checked + .toggle-slider:before {
+      transform: translateX(24px);
+    }
+    .loading {
       text-align: center;
-      font-size: 12px;
-      color: #9a9aa3;
-    }
-    .footer a {
-      color: #ffb357;
-      text-decoration: none;
-    }
-    .footer a:hover {
-      color: #ff8a00;
+      padding: 32px;
+      color: var(--muted);
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="logo">Foolder</div>
-    
-    <div id="qrNotice" class="qr-notice hidden">
-      Signing in from your TV app
+  <header class="topbar">
+    <div class="brand">Foolder</div>
+    <nav class="nav">
+      <a href="index.html">Home</a>
+      <a href="settings.html">Settings</a>
+      <a href="about.html">About</a>
+      <a href="account.html">Account</a>
+    </nav>
+  </header>
+
+  <main class="main">
+    <div id="loadingState" class="card loading">
+      Loading account information...
     </div>
-    
-    <div id="loginForm">
-      <h1>Sign In</h1>
+
+    <div id="mainContent" class="hidden">
+      <!-- Profile Section -->
+      <div class="card section">
+        <h2 class="section-title">Profile</h2>
+        <div class="profile-info">
+          <div>
+            <div class="profile-label">Email</div>
+            <div class="profile-value" id="userEmail">-</div>
+          </div>
+          <div>
+            <div class="profile-label">Account Created</div>
+            <div class="profile-value" id="accountCreated">-</div>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <button class="btn btn-small" id="changePasswordBtn">Change Password</button>
+        <button class="btnSecondary btn btn-small" id="logoutBtn" style="margin-left: 12px;">Logout</button>
+      </div>
+
+      <!-- Addons Section -->
+      <div class="card section">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <h2 class="section-title" style="margin: 0;">Addons</h2>
+          <button class="btn btn-small" id="addAddonBtn">Add Addon</button>
+        </div>
+        <div id="addonsList"></div>
+      </div>
+
+      <!-- IPTV Section -->
+      <div class="card section">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <h2 class="section-title" style="margin: 0;">IPTV URLs</h2>
+          <button class="btn btn-small" id="addIptvBtn">Add IPTV URL</button>
+        </div>
+        <div id="iptvList"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Change Password Modal -->
+  <div id="passwordModal" class="modal">
+    <div class="modal-content">
+      <h3 class="modal-title">Change Password</h3>
       <div class="form-group">
-        <input id="email" type="email" placeholder="Email" autocomplete="email" />
+        <input id="currentPassword" type="password" class="input" placeholder="Current Password" />
       </div>
       <div class="form-group">
-        <input id="password" type="password" placeholder="Password" autocomplete="current-password" />
-      </div>
-      <button id="loginBtn" class="btn">Sign In</button>
-      
-      <div class="divider"><span>OR</span></div>
-      
-      <a class="toggle-link" id="toggleSignup">New to Foolder? Sign up now.</a>
-    </div>
-    
-    <div id="signupForm" class="hidden">
-      <h1>Sign Up</h1>
-      <div class="form-group">
-        <input id="newEmail" type="email" placeholder="Email" autocomplete="email" />
+        <input id="newPassword" type="password" class="input" placeholder="New Password" />
       </div>
       <div class="form-group">
-        <input id="newPassword" type="password" placeholder="Password" autocomplete="new-password" />
+        <input id="confirmPassword" type="password" class="input" placeholder="Confirm New Password" />
       </div>
-      <button id="signupBtn" class="btn">Create Account</button>
-      
-      <div class="divider"><span>OR</span></div>
-      
-      <a class="toggle-link" id="toggleLogin">Already have an account? Sign in.</a>
-    </div>
-    
-    <div id="status" class="status hidden"></div>
-    <div style="margin-top: 20px; text-align: center;">
-      <a class="toggle-link" href="delete-account.html">Request account and data deletion</a>
-    </div>
-    <div class="footer">
-      <a href="privacy.html">Privacy Policy</a>
+      <div id="passwordStatus" class="status hidden"></div>
+      <div class="modal-actions">
+        <button class="btn" id="savePasswordBtn">Save Password</button>
+        <button class="btnSecondary btn" id="cancelPasswordBtn">Cancel</button>
+      </div>
     </div>
   </div>
 
+  <!-- Addon Modal -->
+  <div id="addonModal" class="modal">
+    <div class="modal-content">
+      <h3 class="modal-title" id="addonModalTitle">Add Addon</h3>
+      <div class="form-group">
+        <input id="addonName" type="text" class="input" placeholder="Addon Name" />
+      </div>
+      <div class="form-group">
+        <input id="addonUrl" type="text" class="input" placeholder="Addon URL/Endpoint" />
+      </div>
+      <div class="form-group">
+        <label style="display: flex; align-items: center; gap: 12px;">
+          <span>Enabled</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="addonEnabled" checked />
+            <span class="toggle-slider"></span>
+          </label>
+        </label>
+      </div>
+      <div id="addonStatus" class="status hidden"></div>
+      <div class="modal-actions">
+        <button class="btn" id="saveAddonBtn">Save Addon</button>
+        <button class="btnSecondary btn" id="cancelAddonBtn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- IPTV Modal -->
+  <div id="iptvModal" class="modal">
+    <div class="modal-content">
+      <h3 class="modal-title" id="iptvModalTitle">Add IPTV URL</h3>
+      <div class="form-group">
+        <input id="iptvName" type="text" class="input" placeholder="IPTV Name" />
+      </div>
+      <div class="form-group">
+        <input id="iptvUrl" type="text" class="input" placeholder="M3U/Playlist URL" />
+      </div>
+      <div class="form-group">
+        <label style="display: flex; align-items: center; gap: 12px;">
+          <span>Enabled</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="iptvEnabled" checked />
+            <span class="toggle-slider"></span>
+          </label>
+        </label>
+      </div>
+      <div id="iptvStatus" class="status hidden"></div>
+      <div class="modal-actions">
+        <button class="btn" id="saveIptvBtn">Save IPTV URL</button>
+        <button class="btnSecondary btn" id="cancelIptvBtn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm Delete Modal -->
+  <div id="confirmModal" class="modal">
+    <div class="modal-content">
+      <h3 class="modal-title">Confirm Delete</h3>
+      <p id="confirmMessage">Are you sure you want to delete this item?</p>
+      <div class="modal-actions">
+        <button class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+        <button class="btnSecondary btn" id="cancelDeleteBtn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/site.js"></script>
   <script src="assets/account.js"></script>
 </body>
 </html>
