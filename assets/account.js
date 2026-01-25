@@ -81,8 +81,8 @@ async function init() {
     if (qrCode) {
         loadingState.textContent = "Linking TV...";
         
-        // Short delay to ensure UI updates
-        await new Promise(r => setTimeout(r, 100));
+        // Wait for the next animation frame so the "Linking TV..." text is rendered before the network request
+        await new Promise(resolve => requestAnimationFrame(resolve));
         
         try {
             await api(`/auth/qr-session/${qrCode}/complete-session`, {
@@ -107,8 +107,17 @@ async function init() {
   } catch (e) {
     console.error("Failed to load account data:", e);
     // Don't show alert loop if auth fails, api function handles redirect
-    if (!e.message.includes("401")) {
-       // alert("Failed to load account information. Please try again.");
+    const isAuthError =
+      e &&
+      typeof e === "object" &&
+      (
+        e.status === 401 ||
+        e.statusCode === 401 ||
+        (e.response && e.response.status === 401) ||
+        (typeof e.message === "string" && e.message.includes("401"))
+      );
+    if (!isAuthError) {
+
        loadingState.textContent = "Error loading account data.";
     }
   }
