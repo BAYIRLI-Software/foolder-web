@@ -59,22 +59,6 @@ async function updateNavigation() {
   }
 }
 
-// Update navigation links based on login state
-function updateNavigation(loggedIn) {
-  const navLinks = document.querySelectorAll('.nav a');
-  navLinks.forEach(link => {
-    // Find the login/account link
-    if (link.href.includes('login.html') || link.href.includes('account.html')) {
-      if (loggedIn) {
-        link.textContent = 'Account';
-        link.href = 'account.html';
-      } else {
-        link.textContent = 'Login';
-        link.href = 'login.html';
-      }
-    }
-  });
-}
 
 const frame = document.getElementById("appFrame");
 if (frame) {

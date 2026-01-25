@@ -61,9 +61,43 @@ const addonModal = document.getElementById("addonModal");
 const iptvModal = document.getElementById("iptvModal");
 const confirmModal = document.getElementById("confirmModal");
 
+
+function getStoredSession() {
+  try {
+    const raw = localStorage.getItem(sessionKey);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
 // Initialize page
 async function init() {
   try {
+    // Check for QR Link
+    const urlParams = new URLSearchParams(window.location.search);
+    const qrCode = urlParams.get('qr') || urlParams.get('code');
+    
+    if (qrCode) {
+        loadingState.textContent = "Linking TV...";
+        
+        // Short delay to ensure UI updates
+        await new Promise(r => setTimeout(r, 100));
+        
+        try {
+            await api(`/auth/qr-session/${qrCode}/complete-session`, {
+                 method: "POST",
+                 body: JSON.stringify({ session: getStoredSession() })
+            });
+            alert("TV Linked Successfully!");
+            // Remove query param without reload
+            window.history.replaceState({}, document.title, "account.html");
+        } catch (e) {
+            console.error(e);
+            alert("Failed to link TV: " + e.message);
+        }
+    }
+
     await loadUserInfo();
     await loadAddons();
     await loadIptvUrls();
@@ -72,7 +106,11 @@ async function init() {
     mainContent.classList.remove("hidden");
   } catch (e) {
     console.error("Failed to load account data:", e);
-    alert("Failed to load account information. Please try again.");
+    // Don't show alert loop if auth fails, api function handles redirect
+    if (!e.message.includes("401")) {
+       // alert("Failed to load account information. Please try again.");
+       loadingState.textContent = "Error loading account data.";
+    }
   }
 }
 
