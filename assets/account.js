@@ -104,7 +104,7 @@ let deleteCallback = null;
 
 // UI Elements
 const loadingState = document.getElementById("loadingState");
-const mainContent = document.getElementById("mainContent");
+const mainContent = document.getElementById("contentState");
 const userEmailEl = document.getElementById("userEmail");
 const accountCreatedEl = document.getElementById("accountCreated");
 const addonsListEl = document.getElementById("addonsList");
