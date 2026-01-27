@@ -235,14 +235,19 @@ function renderAddons() {
   
   addonsListEl.innerHTML = addons.map(addon => `
     <div class="item" data-addon-id="${escapeHtml(addon.id)}">
-      <div class="item-info">
-        <div class="item-name">
-          ${escapeHtml(addon.name)}
-          <span class="status-badge ${addon.enabled ? 'status-enabled' : 'status-disabled'}">
-            ${addon.enabled ? 'Enabled' : 'Disabled'}
-          </span>
+      <div style="display: flex; gap: 12px; align-items: center; flex: 1; min-width: 0;">
+        <img src="${addon.logo || 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'40\' height=\'40\'%3E%3Crect fill=\'%23333\' width=\'40\' height=\'40\'/%3E%3Ctext x=\'20\' y=\'24\' text-anchor=\'middle\' fill=\'%23999\' font-family=\'Arial\' font-size=\'10\'%3E%3F%3C/text%3E%3C/svg%3E'}" 
+             alt="${escapeHtml(addon.name)}" 
+             style="width: 40px; height: 40px; border-radius: 6px; object-fit: cover; flex-shrink: 0;" />
+        <div class="item-info">
+          <div class="item-name">
+            ${escapeHtml(addon.name)}
+            <span class="status-badge ${addon.enabled ? 'status-enabled' : 'status-disabled'}">
+              ${addon.enabled ? 'Enabled' : 'Disabled'}
+            </span>
+          </div>
+          <div class="item-url">${escapeHtml(addon.url)}</div>
         </div>
-        <div class="item-url">${escapeHtml(addon.url)}</div>
       </div>
       <div class="item-actions">
         <button class="btn btn-small btnSecondary edit-addon-btn" data-id="${escapeHtml(addon.id)}">Edit</button>
@@ -397,13 +402,17 @@ logoutBtn.addEventListener("click", async () => {
 });
 
 // Addon Modal
+let currentManifest = null;
+
 addAddonBtn.addEventListener("click", () => {
   editingAddonId = null;
+  currentManifest = null;
   document.getElementById("addonModalTitle").textContent = "Add Addon";
-  document.getElementById("addonName").value = "";
   document.getElementById("addonUrl").value = "";
   document.getElementById("addonEnabled").checked = true;
   document.getElementById("addonStatus").classList.add("hidden");
+  document.getElementById("addonPreview").style.display = "none";
+  document.getElementById("saveAddonBtn").disabled = true;
   showModal(addonModal);
 });
 
@@ -412,41 +421,127 @@ function editAddon(id) {
   if (!addon) return;
   
   editingAddonId = id;
+  currentManifest = { name: addon.name, logo: addon.logo, description: addon.description, version: addon.version };
   document.getElementById("addonModalTitle").textContent = "Edit Addon";
-  document.getElementById("addonName").value = addon.name;
   document.getElementById("addonUrl").value = addon.url;
   document.getElementById("addonEnabled").checked = addon.enabled !== false;
   document.getElementById("addonStatus").classList.add("hidden");
+  
+  // Show preview with existing data
+  if (addon.name) {
+    document.getElementById("addonPreviewName").textContent = addon.name;
+    document.getElementById("addonPreviewDescription").textContent = addon.description || "No description";
+    document.getElementById("addonPreviewVersion").textContent = addon.version ? `Version ${addon.version}` : "";
+    document.getElementById("addonPreviewIcon").src = addon.logo || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Crect fill='%23333' width='48' height='48'/%3E%3C/svg%3E";
+    document.getElementById("addonPreview").style.display = "block";
+    document.getElementById("saveAddonBtn").disabled = false;
+  }
+  
   showModal(addonModal);
 }
+
+// Fetch manifest when URL changes
+document.getElementById("addonUrl").addEventListener("input", async (e) => {
+  const url = e.target.value.trim();
+  const saveBtn = document.getElementById("saveAddonBtn");
+  const statusEl = document.getElementById("addonStatus");
+  const previewEl = document.getElementById("addonPreview");
+  
+  // Hide preview and disable save if URL is empty
+  if (!url) {
+    previewEl.style.display = "none";
+    saveBtn.disabled = true;
+    statusEl.classList.add("hidden");
+    currentManifest = null;
+    return;
+  }
+  
+  // Check if URL looks like a manifest URL
+  if (!url.startsWith("http://") && !url.startsWith("https://")) {
+    previewEl.style.display = "none";
+    saveBtn.disabled = true;
+    statusEl.textContent = "URL must start with http:// or https://";
+    statusEl.className = "status error";
+    statusEl.classList.remove("hidden");
+    return;
+  }
+  
+  // Fetch manifest
+  try {
+    statusEl.textContent = "Loading addon manifest...";
+    statusEl.className = "status";
+    statusEl.classList.remove("hidden");
+    
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`Failed to fetch manifest: ${response.status}`);
+    
+    const manifest = await response.json();
+    
+    // Validate manifest has required fields
+    if (!manifest.name) throw new Error("Manifest missing 'name' field");
+    
+    currentManifest = {
+      name: manifest.name,
+      description: manifest.description || "No description provided",
+      logo: manifest.logo || null,
+      version: manifest.version || null
+    };
+    
+    // Update preview
+    document.getElementById("addonPreviewName").textContent = currentManifest.name;
+    document.getElementById("addonPreviewDescription").textContent = currentManifest.description;
+    document.getElementById("addonPreviewVersion").textContent = currentManifest.version ? `Version ${currentManifest.version}` : "";
+    document.getElementById("addonPreviewIcon").src = currentManifest.logo || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Crect fill='%23333' width='48' height='48'/%3E%3Ctext x='24' y='28' text-anchor='middle' fill='%23999' font-family='Arial' font-size='12'%3E%3F%3C/text%3E%3C/svg%3E";
+    
+    previewEl.style.display = "block";
+    saveBtn.disabled = false;
+    statusEl.classList.add("hidden");
+  } catch (e) {
+    console.error("Failed to fetch manifest:", e);
+    previewEl.style.display = "none";
+    saveBtn.disabled = true;
+    statusEl.textContent = `Failed to load manifest: ${e.message}`;
+    statusEl.className = "status error";
+    statusEl.classList.remove("hidden");
+    currentManifest = null;
+  }
+});
 
 document.getElementById("cancelAddonBtn").addEventListener("click", () => {
   hideModal(addonModal);
 });
 
 document.getElementById("saveAddonBtn").addEventListener("click", async () => {
-  const name = document.getElementById("addonName").value.trim();
   const url = document.getElementById("addonUrl").value.trim();
   const enabled = document.getElementById("addonEnabled").checked;
   const statusEl = document.getElementById("addonStatus");
   
-  if (!name || !url) {
-    statusEl.textContent = "Please fill in all fields";
+  if (!url || !currentManifest) {
+    statusEl.textContent = "Please enter a valid addon URL";
     statusEl.className = "status error";
     statusEl.classList.remove("hidden");
     return;
   }
   
   try {
+    const payload = {
+      url,
+      name: currentManifest.name,
+      description: currentManifest.description,
+      logo: currentManifest.logo,
+      version: currentManifest.version,
+      enabled
+    };
+    
     if (editingAddonId) {
       await api(`/user/addons/${editingAddonId}`, {
         method: "PUT",
-        body: JSON.stringify({ name, url, enabled })
+        body: JSON.stringify(payload)
       });
     } else {
       await api("/user/addons", {
         method: "POST",
-        body: JSON.stringify({ name, url, enabled })
+        body: JSON.stringify(payload)
       });
     }
     

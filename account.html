@@ -313,14 +313,23 @@
     <div class="modal-content">
       <h3 class="modal-title" id="addonModalTitle">Add Addon</h3>
       <div class="form-group">
-        <input id="addonName" type="text" class="input" placeholder="Addon Name" />
+        <label style="font-size: 13px; color: var(--muted); margin-bottom: 6px; display: block;">Addon Manifest URL</label>
+        <input id="addonUrl" type="text" class="input" placeholder="https://example.com/manifest.json" />
+        <div style="font-size: 11px; color: var(--muted); margin-top: 6px;">Enter the manifest URL to automatically load addon details</div>
+      </div>
+      <div id="addonPreview" class="addon-preview" style="display: none;">
+        <div style="display: flex; gap: 12px; align-items: start; padding: 12px; background: rgba(255, 255, 255, 0.02); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.06);">
+          <img id="addonPreviewIcon" src="" alt="" style="width: 48px; height: 48px; border-radius: 8px; object-fit: cover;" />
+          <div style="flex: 1; min-width: 0;">
+            <div id="addonPreviewName" style="font-weight: 600; font-size: 14px; margin-bottom: 4px;"></div>
+            <div id="addonPreviewDescription" style="font-size: 12px; color: var(--muted); line-height: 1.4;"></div>
+            <div id="addonPreviewVersion" style="font-size: 11px; color: var(--muted); margin-top: 4px;"></div>
+          </div>
+        </div>
       </div>
       <div class="form-group">
-        <input id="addonUrl" type="text" class="input" placeholder="Addon URL/Endpoint" />
-      </div>
-      <div class="form-group">
-        <label style="display: flex; align-items: center; gap: 12px;">
-          <span>Enabled</span>
+        <label style="display: flex; align-items: center; justify-content: space-between;">
+          <span style="font-size: 13px; font-weight: 500;">Enable on load</span>
           <label class="toggle-switch">
             <input type="checkbox" id="addonEnabled" checked />
             <span class="toggle-slider"></span>
@@ -329,7 +338,7 @@
       </div>
       <div id="addonStatus" class="status hidden"></div>
       <div class="modal-actions">
-        <button class="btn" id="saveAddonBtn">Save Addon</button>
+        <button class="btn" id="saveAddonBtn" disabled>Save Addon</button>
         <button class="btnSecondary btn" id="cancelAddonBtn">Cancel</button>
       </div>
     </div>
@@ -374,7 +383,7 @@
     </div>
   </div>
 
-  <script src="assets/site.js?v=2"></script>
-  <script src="assets/account.js?v=2"></script>
+  <script src="assets/site.js?v=3"></script>
+  <script src="assets/account.js?v=3"></script>
 </body>
 </html>
