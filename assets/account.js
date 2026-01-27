@@ -62,8 +62,18 @@ async function api(path, options = {}) {
   const headers = { "Content-Type": "application/json", ...(options.headers || {}) };
   if (token) headers.Authorization = `Bearer ${token}`;
   
-  const res = await fetch(`${backendBaseUrl}${path}`, { ...options, headers });
+  const url = `${backendBaseUrl}${path}`;
+  console.log(`[API] ${options.method || 'GET'} ${url}`);
+  
+  const res = await fetch(url, { ...options, headers });
   const text = await res.text();
+  
+  // Check if response is HTML (error page) instead of JSON
+  if (text.trim().startsWith('<')) {
+    console.error('[API] Received HTML instead of JSON:', text.substring(0, 200));
+    throw new Error(`Server returned HTML instead of JSON. Status: ${res.status}`);
+  }
+  
   const data = text ? JSON.parse(text) : {};
   
   if (!res.ok) {
@@ -79,8 +89,15 @@ async function api(path, options = {}) {
         // Create retry options with updated headers
         const retryOptions = { ...options, headers: retryHeaders };
         
-        const retryRes = await fetch(`${backendBaseUrl}${path}`, retryOptions);
+        const retryRes = await fetch(url, retryOptions);
         const retryText = await retryRes.text();
+        
+        // Check for HTML on retry too
+        if (retryText.trim().startsWith('<')) {
+          console.error('[API] Retry received HTML instead of JSON:', retryText.substring(0, 200));
+          throw new Error(`Server returned HTML instead of JSON. Status: ${retryRes.status}`);
+        }
+        
         const retryData = retryText ? JSON.parse(retryText) : {};
         if (retryRes.ok) return retryData;
       }
@@ -678,8 +695,11 @@ function confirmDeleteAddon(id, name) {
   document.getElementById("confirmMessage").textContent = `Are you sure you want to delete the addon "${name}"?`;
   deleteCallback = async () => {
     try {
-      // URL encode the addon ID since it may contain special characters (URLs)
-      await api(`/user/addons/${encodeURIComponent(id)}`, { method: "DELETE" });
+      // Use POST with body to avoid URL encoding issues with addon IDs containing URLs
+      await api(`/user/addons/delete`, { 
+        method: "POST",
+        body: JSON.stringify({ id })
+      });
       await loadAddons();
       hideModal(confirmModal);
     } catch (e) {
