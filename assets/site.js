@@ -81,7 +81,8 @@ async function api(path, options = {}) {
 // Check authentication and update nav
 async function updateNavigation() {
   const token = localStorage.getItem(tokenKey);
-  const accountLinks = document.querySelectorAll('.nav a[href="account.html"]');
+  // Select both account.html and login.html links so we can find them regardless of current state
+  const accountLinks = document.querySelectorAll('.nav a[href="account.html"], .nav a[href="login.html"]');
   
   if (!token) {
     // Not logged in - change Account link to Login
