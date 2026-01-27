@@ -1,3 +1,6 @@
+(function() {
+'use strict';
+
 const appUrl = "/app/index.html"; // Hosted desktop web build
 const defaultBackendUrl = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
   ? "http://localhost:3000"
@@ -86,22 +89,24 @@ async function updateNavigation() {
       link.href = "login.html";
       link.textContent = "Login";
     });
-  } else {
-    // Verify token is still valid
-    try {
-      await api("/me");
-      // Token is valid - keep Account link
-      accountLinks.forEach(link => {
-        link.href = "account.html";
-        link.textContent = "Account";
-      });
-    } catch (e) {
-      // Token is invalid even after refresh attempt - show Login
-      accountLinks.forEach(link => {
-        link.href = "login.html";
-        link.textContent = "Login";
-      });
-    }
+    return;
+  }
+  
+  // Verify token is still valid
+  try {
+    await api("/me");
+    // Token is valid - keep Account link
+    accountLinks.forEach(link => {
+      link.href = "account.html";
+      link.textContent = "Account";
+    });
+  } catch (e) {
+    console.warn("Token validation failed:", e);
+    // Token is invalid even after refresh attempt - show Login
+    accountLinks.forEach(link => {
+      link.href = "login.html";
+      link.textContent = "Login";
+    });
   }
 }
 
@@ -121,3 +126,5 @@ document.querySelectorAll(".nav a").forEach(link => {
 
 // Update navigation on page load
 updateNavigation();
+
+})();
